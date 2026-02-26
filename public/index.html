@@ -1462,7 +1462,7 @@
                         
                         return `
                             <div class="item" 
-                                 data-code="${(item.code || "").toUpperCase()}" 
+                                data-code="${(item.code || "").toString().toUpperCase()}" 
                                  data-order="${orderLabel}"
                                  data-sheet="${sheetName}"
                                  data-item='${itemData}'>
