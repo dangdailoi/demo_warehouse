@@ -1226,8 +1226,7 @@
 
     <script>
         // ===================== CẤU HÌNH =====================
-        const API_URL = "https://script.google.com/macros/s/AKfycbydmfqg12aCjgwu-2P0oY0AUyqXi3KlGsn_hmjre8d-detVUSmRtViWsgFjg3ahID6D/exec";
-        const EDIT_PASSWORD = "1111"; // Đổi password tại đây
+        const API_URL = "https://script.google.com/macros/s/AKfycbwcP6fOmpL2WHiWvSItkQdaSdmmRswogAYHP5tMiSVfvdF6WFwIEATZa7v0M0UE3NYs/exec";
         // ====================================================
 
         let warehouseData = {
@@ -1316,24 +1315,29 @@
 
         // ==================== UPDATE DATA ====================
         async function updateQuantity(sheet, row, col, newQty) {
+            // Lấy mật khẩu người dùng vừa nhập ở Modal
+            const password = document.getElementById('modalPassword').value;
+        
             try {
                 updateStatus('loading', 'Đang lưu...');
                 
                 const response = await fetch(API_URL, {
                     method: 'POST',
+                    // Gửi dữ liệu dưới dạng JSON
                     body: JSON.stringify({
                         sheet: sheet,
                         row: row,
                         col: col,
-                        value: newQty
+                        value: newQty,
+                        password: password // THÊM DÒNG NÀY ĐỂ XÁC THỰC
                     })
                 });
-
+        
                 const result = await response.json();
                 
                 if (result.success) {
                     showToast('Cập nhật thành công!', 'success');
-                    await loadAllData(); // Reload data
+                    await loadAllData(); 
                     return true;
                 } else {
                     throw new Error(result.message || 'Lỗi cập nhật');
