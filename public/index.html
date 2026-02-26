@@ -1370,31 +1370,50 @@
             const password = document.getElementById('modalPassword').value;
             const newQty = parseInt(document.getElementById('modalQty').value) || 0;
             
-            if (password !== EDIT_PASSWORD) {
-                document.getElementById('passwordError').classList.add('active');
-                document.getElementById('modalPassword').classList.add('error');
-                document.getElementById('modalPassword').focus();
-                return;
-            }
-            
-            if (!currentEditItem) return;
-            
-            const saveBtn = document.getElementById('modalSave');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Đang lưu...';
-            
-            const success = await updateQuantity(
-                currentEditItem.sheet,
-                currentEditItem.rowIndex,
-                currentEditItem.colIndex,
-                newQty
-            );
-            
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Lưu';
-            
-            if (success) {
-                closeEditModal();
+            const passwordError = document.getElementById('passwordError');
+            const modalPassword = document.getElementById('modalPassword');
+        
+            try {
+                // Gửi mật khẩu lên server để kiểm tra
+                const checkAuth = await fetch('check_password.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+        
+                const authResult = await checkAuth.json();
+        
+                if (!authResult.success) {
+                    passwordError.classList.add('active');
+                    modalPassword.classList.add('error');
+                    modalPassword.focus();
+                    return;
+                }
+        
+                // Nếu mật khẩu đúng, mới tiến hành lưu vào Google Sheet
+                if (!currentEditItem) return;
+                
+                const saveBtn = document.getElementById('modalSave');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Đang lưu...';
+                
+                const success = await updateQuantity(
+                    currentEditItem.sheet,
+                    currentEditItem.rowIndex,
+                    currentEditItem.colIndex,
+                    newQty
+                );
+                
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Lưu';
+                
+                if (success) {
+                    closeEditModal();
+                }
+        
+            } catch (error) {
+                passwordError.textContent = "Lỗi kết nối server!";
+                passwordError.classList.add('active');
             }
         }
 
