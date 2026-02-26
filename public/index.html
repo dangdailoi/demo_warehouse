@@ -1333,14 +1333,14 @@
                 
                 if (result.success) {
                     showToast('Cập nhật thành công!', 'success');
-                    await loadAllData(); 
+                    await loadAllData(); // Tải lại để đồng bộ
                     return true;
                 } else {
-                    // Hiển thị lỗi mật khẩu nếu server trả về false
-                    document.getElementById('passwordError').textContent = result.message;
+                    // Nếu sai pass hoặc lỗi khác, hiển thị thông báo từ server
+                    const errorMsg = result.message || 'Lỗi không xác định';
+                    document.getElementById('passwordError').textContent = errorMsg;
                     document.getElementById('passwordError').classList.add('active');
-                    document.getElementById('modalPassword').classList.add('error');
-                    throw new Error(result.message);
+                    return false;
                 }
             } catch (error) {
                 console.error('Update error:', error);
