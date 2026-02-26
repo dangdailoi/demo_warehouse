@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QUẢN LÝ KHO</title>
+    <link rel="icon" type="image/png" href="/img/inventory.png">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #12171f;
+            --bg-card: #1a1f2a;
+            --accent-orange: #ff6b35;
+            --accent-yellow: #ffc107;
+            --accent-green: #00e676;
+            --accent-blue: #00bcd4;
+            --accent-red: #ff5252;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --border-color: #2d3540;
+            --highlight-bg: rgba(255, 107, 53, 0.4);
+            --path-highlight: rgba(0, 230, 118, 0.2);
+            --path-line: #00e676;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 15px 10px;
+            margin-bottom: 15px;
+        }
+        
+        .header h1 {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        
+        .header h1 .title {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Search Section - Sticky */
+        .search-section {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-primary);
+            padding: 10px 0;
+            margin-bottom: 15px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            min-width: 0;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: var(--accent-orange);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .clear-btn {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Search Results */
+        .search-results {
+            display: none;
+            margin-top: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .results-header {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .results-header span {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .result-group {
+            margin-bottom: 10px;
+        }
+
+        .result-group-title {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-group-title .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+        }
+
+        .result-group-title .badge.tp { background: rgba(255, 193, 7, 0.2); color: var(--accent-yellow); }
+        .result-group-title .badge.a { background: rgba(0, 230, 118, 0.2); color: var(--accent-green); }
+        .result-group-title .badge.xi { background: rgba(0, 188, 212, 0.2); color: var(--accent-blue); }
+
+        .result-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .result-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .result-item:hover, .result-item:active {
+            border-color: var(--accent-orange);
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .result-item .code {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .result-item .qty-badge {
+            background: var(--accent-blue);
+            color: white;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            margin-left: 4px;
+        }
+
+        .result-item .detail {
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .stat-value.tp { color: var(--accent-yellow); }
+        .stat-value.a { color: var(--accent-green); }
+        .stat-value.xi { color: var(--accent-blue); }
+
+        /* Warehouse Tabs */
+        .warehouse-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .warehouse-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .warehouse-tab {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .warehouse-tab.active {
+            border-color: var(--accent-orange);
+            color: var(--text-primary);
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .warehouse-tab.has-results::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        .warehouse-tab .count {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+        }
+
+        .warehouse-tab.active .count {
+            background: var(--accent-orange);
+            color: var(--bg-primary);
+        }
+
+        /* Warehouse Content */
+        .warehouse-content {
+            display: none;
+        }
+
+        .warehouse-content.active {
+            display: block;
+        }
+
+        .warehouse-layout {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        .warehouse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .warehouse-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warehouse-title .badge {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+        }
+
+        .warehouse-title .badge.tp { background: rgba(255, 193, 7, 0.2); color: var(--accent-yellow); }
+        .warehouse-title .badge.a { background: rgba(0, 230, 118, 0.2); color: var(--accent-green); }
+        .warehouse-title .badge.xi { background: rgba(0, 188, 212, 0.2); color: var(--accent-blue); }
+
+        /* Distance Info */
+        .distance-info {
+            display: none;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.15), rgba(0, 188, 212, 0.15));
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .distance-info.active {
+            display: block;
+        }
+
+        .distance-info .summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .distance-info .found-count {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .distance-info .locations {
+            margin-top: 8px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .distance-info .locations span {
+            display: inline-block;
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 2px;
+        }
+
+        /* Warehouse Grid */
+        .warehouse-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0;
+            font-size: 0.7rem;
+        }
+
+        .warehouse-grid.single-aisle {
+            grid-template-columns: 1fr;
+        }
+
+        /* Aisle */
+        .aisle {
+            min-width: 0;
+        }
+
+        .aisle-header {
+            text-align: center;
+            padding: 8px 5px;
+            background: var(--bg-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s;
+        }
+
+        .aisle.has-highlight .aisle-header {
+            background: rgba(0, 230, 118, 0.2);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .aisle-content {
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .aisle.has-highlight .aisle-content {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
+        }
+
+        /* Walking Path */
+        .walking-path {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 3px;
+            min-width: 30px;
+            position: relative;
+        }
+
+        .walking-path .path-line {
+            position: absolute;
+            top: 30px;
+            bottom: 30px;
+            left: 50%;
+            width: 2px;
+            background: var(--border-color);
+            transform: translateX(-50%);
+        }
+
+        .walking-path.path-active .path-line {
+            background: var(--accent-green);
+            width: 4px;
+            box-shadow: 0 0 15px var(--accent-green);
+            animation: glow-line 1.5s infinite;
+        }
+
+        @keyframes glow-line {
+            0%, 100% { box-shadow: 0 0 10px var(--accent-green); }
+            50% { box-shadow: 0 0 20px var(--accent-green), 0 0 30px var(--accent-green); }
+        }
+
+        .walking-path .branch-left,
+        .walking-path .branch-right {
+            position: absolute;
+            height: 3px;
+            background: var(--accent-green);
+            top: 50%;
+            display: none;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .walking-path .branch-left { left: 0; right: 50%; }
+        .walking-path .branch-right { left: 50%; right: 0; }
+        .walking-path.branch-to-left .branch-left { display: block; }
+        .walking-path.branch-to-right .branch-right { display: block; }
+
+        .path-label {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: var(--bg-card);
+            padding: 5px 2px;
+            z-index: 1;
+        }
+
+        .path-arrow {
+            font-size: 0.8rem;
+            color: var(--accent-green);
+            z-index: 1;
+            background: var(--bg-card);
+        }
+
+        /* Row */
+        .row {
+            display: flex;
+            align-items: stretch;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 40px;
+            transition: background 0.3s;
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .row.path-highlight {
+            background: var(--path-highlight);
+            position: relative;
+        }
+
+        .row.path-highlight::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        .row-number {
+            width: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .row.path-highlight .row-number {
+            background: rgba(0, 230, 118, 0.3);
+            color: var(--accent-green);
+        }
+
+        .row-items {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 4px;
+            gap: 4px;
+            align-items: center;
+            min-width: 0;
+        }
+
+        /* Item - New Structure with Code + Qty */
+        .item {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            padding: 4px 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 50px;
+        }
+
+        .item .item-code {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .item .item-qty {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.55rem;
+            color: var(--accent-blue);
+            cursor: pointer;
+            padding: 2px 4px;
+            background: rgba(0, 188, 212, 0.1);
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .item .item-qty:hover {
+            background: rgba(0, 188, 212, 0.3);
+        }
+
+        .item .item-qty .qty-icon {
+            font-size: 0.5rem;
+        }
+
+        .item.highlight {
+            background: var(--highlight-bg);
+            border: 2px solid var(--accent-orange);
+            animation: pulse 1.5s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        .item.highlight .item-code {
+            color: var(--accent-orange);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.5); }
+            50% { box-shadow: 0 0 0 6px rgba(255, 107, 53, 0); }
+        }
+
+        .item.highlight .item-order {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-orange);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            font-weight: 700;
+        }
+
+        .item-empty {
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 0.55rem;
+        }
+
+        /* Entrance */
+        .entrance {
+            text-align: center;
+            padding: 10px;
+            background: linear-gradient(135deg, rgba(0, 230, 118, 0.1), rgba(0, 188, 212, 0.1));
+            border: 2px dashed var(--accent-green);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .entrance-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 350px;
+            width: 100%;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--accent-orange);
+        }
+
+        .modal-info {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .modal-info .label {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+        }
+
+        .modal-info .value {
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        .modal-input-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+        }
+
+        .modal-input.error {
+            border-color: var(--accent-red);
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.primary {
+            background: var(--accent-orange);
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            background: #ff8a50;
+        }
+
+        .modal-btn.secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-btn.secondary:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .modal-error {
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .modal-error.active {
+            display: block;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            z-index: 1001;
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .toast.error {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Buttons */
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-orange);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+        }
+
+        .status-dot.loading {
+            background: var(--accent-yellow);
+            animation: blink 1s infinite;
+        }
+
+        .status-dot.error {
+            background: #ff6b6b;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        .loading-text {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Error */
+        .error-container {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border: 1px solid #ff6b6b;
+            border-radius: 12px;
+        }
+
+        .error-icon { font-size: 2.5rem; margin-bottom: 15px; }
+        .error-title { font-size: 1rem; color: #ff6b6b; margin-bottom: 8px; }
+        .error-message { color: var(--text-secondary); margin-bottom: 15px; font-size: 0.85rem; }
+
+        .retry-btn {
+            padding: 10px 25px;
+            background: #ff6b6b;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 12px;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .legend-color.path { background: var(--path-highlight); border: 1px solid var(--accent-green); }
+        .legend-color.highlight { background: var(--highlight-bg); border: 2px solid var(--accent-orange); }
+
+        /* Desktop adjustments */
+        @media (min-width: 768px) {
+            .container { padding: 20px; }
+            .header h1 { font-size: 2rem; }
+            .search-input { font-size: 1.1rem; padding: 15px 20px; }
+            .search-btn { padding: 15px 30px; }
+            .stats-bar { gap: 15px; }
+            .stat-card { padding: 15px; }
+            .stat-label { font-size: 0.7rem; }
+            .stat-value { font-size: 1.5rem; }
+            .warehouse-layout { padding: 20px; }
+            .warehouse-grid { font-size: 0.8rem; }
+            .walking-path { min-width: 60px; padding: 10px; }
+            .path-label { font-size: 0.7rem; }
+            .row { min-height: 50px; }
+            .row-number { width: 40px; font-size: 0.8rem; }
+            .row-items { padding: 6px 8px; gap: 6px; }
+            .item { font-size: 0.75rem; padding: 6px 10px; min-width: 70px; }
+            .item .item-qty { font-size: 0.65rem; }
+            .aisle-header { font-size: 0.85rem; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Đang tải dữ liệu...</div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Đang kết nối...</span>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-title">✏️ Sửa số lượng</div>
+            <div class="modal-info">
+                <div class="label">Mã hàng</div>
+                <div class="value" id="modalCode">--</div>
+            </div>
+            <div class="modal-info">
+                <div class="label">Vị trí</div>
+                <div class="value" id="modalLocation">--</div>
+            </div>
+            <div class="modal-input-group">
+                <label>Số lượng mới</label>
+                <input type="number" class="modal-input" id="modalQty" min="0" placeholder="Nhập số lượng">
+            </div>
+            <div class="modal-input-group" id="passwordGroup">
+                <label>Mật khẩu</label>
+                <input type="password" class="modal-input" id="modalPassword" placeholder="Nhập mật khẩu">
+                <div class="modal-error" id="passwordError">Mật khẩu không đúng!</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" id="modalCancel">Hủy</button>
+                <button class="modal-btn primary" id="modalSave">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage">Thành công!</span>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <h1>
+                <span class="icon_h1">🏭</span>
+                <span class="title">QUẢN LÝ KHO</span>
+            </h1>
+        </header>
+
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Nhập mã hàng...">
+                <button class="search-btn" id="searchBtn">Tìm</button>
+                <button class="clear-btn" id="clearBtn">✕</button>
+            </div>
+            <div class="search-results" id="searchResults">
+                <div class="results-header">
+                    Tìm thấy <span id="resultCount">0</span> vị trí cho "<span id="searchTerm"></span>"
+                </div>
+                <div id="resultGroups"></div>
+            </div>
+        </section>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-label">Kho TP</div>
+                <div class="stat-value tp" id="statTP">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Xưởng A</div>
+                <div class="stat-value a" id="statA">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Xưởng XI</div>
+                <div class="stat-value xi" id="statXI">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Tổng</div>
+                <div class="stat-value" id="statTotal">--</div>
+            </div>
+        </div>
+
+        <div class="warehouse-tabs">
+            <button class="warehouse-tab active" data-warehouse="tp">
+                📦 Kho TP
+                <span class="count" id="tabCountTP">--</span>
+            </button>
+            <button class="warehouse-tab" data-warehouse="a">
+                🏗️ Xưởng A
+                <span class="count" id="tabCountA">--</span>
+            </button>
+            <button class="warehouse-tab" data-warehouse="xi">
+                ⚙️ Xưởng XI
+                <span class="count" id="tabCountXI">--</span>
+            </button>
+        </div>
+
+        <div id="mainContent">
+            <!-- Kho Thành Phẩm -->
+            <div class="warehouse-content active" id="warehouse-tp">
+                <div class="warehouse-layout">
+                    <div class="warehouse-header">
+                        <div class="warehouse-title">
+                            <span class="badge tp">TP</span>
+                            Kho Thành Phẩm
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-color path"></div><span>Đường đi</span></div>
+                            <div class="legend-item"><div class="legend-color highlight"></div><span>Vị trí</span></div>
+                        </div>
+                    </div>
+                    <div class="distance-info" id="distanceTP"></div>
+                    <div class="warehouse-grid" id="gridTP"></div>
+                    <div class="entrance">
+                        <div class="entrance-text">🚪 CỬA VÀO 🚪</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Xưởng A -->
+            <div class="warehouse-content" id="warehouse-a">
+                <div class="warehouse-layout">
+                    <div class="warehouse-header">
+                        <div class="warehouse-title">
+                            <span class="badge a">A</span>
+                            Xưởng A
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-color path"></div><span>Đường đi</span></div>
+                            <div class="legend-item"><div class="legend-color highlight"></div><span>Vị trí</span></div>
+                        </div>
+                    </div>
+                    <div class="distance-info" id="distanceA"></div>
+                    <div class="warehouse-grid single-aisle" id="gridA"></div>
+                    <div class="entrance">
+                        <div class="entrance-text">🚪 CỬA VÀO 🚪</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Xưởng XI -->
+            <div class="warehouse-content" id="warehouse-xi">
+                <div class="warehouse-layout">
+                    <div class="warehouse-header">
+                        <div class="warehouse-title">
+                            <span class="badge xi">XI</span>
+                            Xưởng XI
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item"><div class="legend-color path"></div><span>Đường đi</span></div>
+                            <div class="legend-item"><div class="legend-color highlight"></div><span>Vị trí</span></div>
+                        </div>
+                    </div>
+                    <div class="distance-info" id="distanceXI"></div>
+                    <div class="warehouse-grid" id="gridXI"></div>
+                    <div class="entrance">
+                        <div class="entrance-text">🚪 CỬA VÀO 🚪</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" id="refreshBtn" title="Làm mới">🔄</button>
+
+    <script>
+        // ===================== CẤU HÌNH =====================
+        const API_URL = "https://script.google.com/macros/s/AKfycbydmfqg12aCjgwu-2P0oY0AUyqXi3KlGsn_hmjre8d-detVUSmRtViWsgFjg3ahID6D/exec";
+        const EDIT_PASSWORD = "1111"; // Đổi password tại đây
+        // ====================================================
+
+        let warehouseData = {
+            TP_TRAI: [], TP_PHAI: [],
+            A: [],
+            XI_TRAI: [], XI_PHAI: []
+        };
+
+        let currentSearchQuery = '';
+        let currentSearchResults = [];
+        let currentEditItem = null;
+
+        // ==================== UTILITIES ====================
+        function updateStatus(status, text) {
+            document.getElementById('statusDot').className = 'status-dot ' + status;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+            
+            icon.textContent = type === 'success' ? '✓' : '✕';
+            msg.textContent = message;
+            toast.className = 'toast active ' + type;
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        function showError(message) {
+            document.getElementById('mainContent').innerHTML = `
+                <div class="error-container">
+                    <div class="error-icon">⚠️</div>
+                    <div class="error-title">Không thể tải dữ liệu</div>
+                    <div class="error-message">${message}</div>
+                    <button class="retry-btn" onclick="loadAllData()">Thử lại</button>
+                </div>
+            `;
+        }
+
+        // ==================== DATA LOADING ====================
+        async function loadAllData() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('loading');
+            updateStatus('loading', 'Đang tải...');
+            showLoading(true);
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Lỗi server: ' + response.status);
+
+                const data = await response.json();
+                if (!data || typeof data !== 'object') throw new Error('Dữ liệu không hợp lệ');
+
+                // Map data với cấu trúc mới {code, qty, rowIndex, colIndex}
+                warehouseData.TP_TRAI = data.TP_TRAI || [];
+                warehouseData.TP_PHAI = data.TP_PHAI || [];
+                warehouseData.A = data.A || [];
+                warehouseData.XI_TRAI = data.XI_TRAI || [];
+                warehouseData.XI_PHAI = data.XI_PHAI || [];
+
+                renderAllWarehouses();
+                updateStats();
+                updateStatus('', new Date().toLocaleTimeString('vi-VN'));
+
+                if (currentSearchQuery) {
+                    applySearchToCurrentWarehouse();
+                }
+
+            } catch (error) {
+                console.error('Load error:', error);
+                updateStatus('error', 'Lỗi');
+                showError(error.message);
+            } finally {
+                refreshBtn.classList.remove('loading');
+                showLoading(false);
+            }
+        }
+
+        // ==================== UPDATE DATA ====================
+        async function updateQuantity(sheet, row, col, newQty) {
+            try {
+                updateStatus('loading', 'Đang lưu...');
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        sheet: sheet,
+                        row: row,
+                        col: col,
+                        value: newQty
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Cập nhật thành công!', 'success');
+                    await loadAllData(); // Reload data
+                    return true;
+                } else {
+                    throw new Error(result.message || 'Lỗi cập nhật');
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                showToast('Lỗi: ' + error.message, 'error');
+                updateStatus('error', 'Lỗi');
+                return false;
+            }
+        }
+
+        // ==================== MODAL ====================
+        function openEditModal(item, sheetName, aisleName) {
+            currentEditItem = { ...item, sheet: sheetName };
+            
+            document.getElementById('modalCode').textContent = item.code;
+            document.getElementById('modalLocation').textContent = `${sheetName} - ${aisleName} - Hàng ${item.displayRow}`;
+            document.getElementById('modalQty').value = item.qty;
+            document.getElementById('modalPassword').value = '';
+            document.getElementById('passwordError').classList.remove('active');
+            document.getElementById('modalPassword').classList.remove('error');
+            
+            document.getElementById('editModal').classList.add('active');
+            document.getElementById('modalQty').focus();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditItem = null;
+        }
+
+        async function handleSave() {
+            const password = document.getElementById('modalPassword').value;
+            const newQty = parseInt(document.getElementById('modalQty').value) || 0;
+            
+            if (password !== EDIT_PASSWORD) {
+                document.getElementById('passwordError').classList.add('active');
+                document.getElementById('modalPassword').classList.add('error');
+                document.getElementById('modalPassword').focus();
+                return;
+            }
+            
+            if (!currentEditItem) return;
+            
+            const saveBtn = document.getElementById('modalSave');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Đang lưu...';
+            
+            const success = await updateQuantity(
+                currentEditItem.sheet,
+                currentEditItem.rowIndex,
+                currentEditItem.colIndex,
+                newQty
+            );
+            
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Lưu';
+            
+            if (success) {
+                closeEditModal();
+            }
+        }
+
+        // ==================== STATS ====================
+        function countUniqueItems(data) {
+            const items = new Set();
+            data.forEach(row => {
+                row.forEach(item => {
+                    if (item && item.code) items.add(item.code.toUpperCase());
+                });
+            });
+            return items.size;
+        }
+
+        function updateStats() {
+            const tpCount = countUniqueItems([...warehouseData.TP_TRAI, ...warehouseData.TP_PHAI]);
+            const aCount = countUniqueItems(warehouseData.A);
+            const xiCount = countUniqueItems([...warehouseData.XI_TRAI, ...warehouseData.XI_PHAI]);
+
+            const allItems = new Set();
+            Object.values(warehouseData).forEach(data => {
+                data.forEach(row => {
+                    row.forEach(item => {
+                        if (item && item.code) allItems.add(item.code.toUpperCase());
+                    });
+                });
+            });
+
+            document.getElementById('statTP').textContent = tpCount;
+            document.getElementById('statA').textContent = aCount;
+            document.getElementById('statXI').textContent = xiCount;
+            document.getElementById('statTotal').textContent = allItems.size;
+
+            document.getElementById('tabCountTP').textContent = tpCount;
+            document.getElementById('tabCountA').textContent = aCount;
+            document.getElementById('tabCountXI').textContent = xiCount;
+        }
+
+        // ==================== RENDERING ====================
+        function renderAisle(data, title, isLeftAisle, sheetName, aisleId) {
+            const totalRows = data.length;
+            let html = `
+                <div class="aisle" id="${aisleId}">
+                    <div class="aisle-header">${title}</div>
+                    <div class="aisle-content">
+            `;
+
+            data.forEach((row, index) => {
+                const displayRow = totalRows - index;
+                
+                const itemsHtml = row.length > 0 
+                    ? row.map((item, itemIndex) => {
+                        const orderLabel = isLeftAisle ? (itemIndex + 1) : (row.length - itemIndex);
+                        // Store item info for editing
+                        const itemData = JSON.stringify({
+                            code: item.code,
+                            qty: item.qty,
+                            rowIndex: item.rowIndex,
+                            colIndex: item.colIndex,
+                            displayRow: displayRow
+                        }).replace(/"/g, '&quot;');
+                        
+                        return `
+                            <div class="item" 
+                                 data-code="${item.code.toUpperCase()}" 
+                                 data-order="${orderLabel}"
+                                 data-sheet="${sheetName}"
+                                 data-item='${itemData}'>
+                                <span class="item-code">${item.code}</span>
+                                <span class="item-qty" title="Click để sửa số lượng">
+                                    <span class="qty-icon">📦</span>
+                                    <span class="qty-value">${item.qty}</span>
+                                </span>
+                            </div>
+                        `;
+                    }).join('')
+                    : '<span class="item-empty">—</span>';
+
+                html += `
+                    <div class="row" data-row="${displayRow}">
+                        <div class="row-number">${displayRow}</div>
+                        <div class="row-items">${itemsHtml}</div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            return html;
+        }
+
+        function renderDoubleAisle(leftData, rightData, gridId, leftSheet, rightSheet) {
+            const container = document.getElementById(gridId);
+            if (!container) return;
+            
+            container.innerHTML = `
+                ${renderAisle(leftData, '◀ TRÁI', true, leftSheet, gridId + '_left')}
+                <div class="walking-path" id="${gridId}_path">
+                    <span class="path-arrow">⬆</span>
+                    <div class="path-line"></div>
+                    <div class="branch-left"></div>
+                    <div class="branch-right"></div>
+                    <span class="path-label">LỐI ĐI</span>
+                    <span class="path-arrow">⬆</span>
+                </div>
+                ${renderAisle(rightData, 'PHẢI ▶', false, rightSheet, gridId + '_right')}
+            `;
+
+            // Add click handlers for editing
+            container.querySelectorAll('.item-qty').forEach(qtyEl => {
+                qtyEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const itemEl = qtyEl.closest('.item');
+                    const itemData = JSON.parse(itemEl.dataset.item.replace(/&quot;/g, '"'));
+                    const sheetName = itemEl.dataset.sheet;
+                    const aisleName = itemEl.closest('.aisle').querySelector('.aisle-header').textContent;
+                    openEditModal(itemData, sheetName, aisleName);
+                });
+            });
+        }
+
+        function renderSingleAisle(data, gridId, sheetName) {
+            const container = document.getElementById(gridId);
+            if (!container) return;
+            container.innerHTML = renderAisle(data, '📍 KHU VỰC CHÍNH', true, sheetName, gridId + '_main');
+
+            // Add click handlers for editing
+            container.querySelectorAll('.item-qty').forEach(qtyEl => {
+                qtyEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const itemEl = qtyEl.closest('.item');
+                    const itemData = JSON.parse(itemEl.dataset.item.replace(/&quot;/g, '"'));
+                    const sheetName = itemEl.dataset.sheet;
+                    openEditModal(itemData, sheetName, 'Khu vực chính');
+                });
+            });
+        }
+
+        function renderAllWarehouses() {
+            renderDoubleAisle(warehouseData.TP_TRAI, warehouseData.TP_PHAI, 'gridTP', 'TP_TRAI', 'TP_PHAI');
+            renderSingleAisle(warehouseData.A, 'gridA', 'A');
+            renderDoubleAisle(warehouseData.XI_TRAI, warehouseData.XI_PHAI, 'gridXI', 'XI_TRAI', 'XI_PHAI');
+        }
+
+        // ==================== SEARCH ====================
+        function searchItems(query) {
+            const results = [];
+            const searchTerm = query.toUpperCase().trim();
+            if (!searchTerm) return results;
+
+            const searchInData = (data, warehouse, warehouseName, aisle, isLeft) => {
+                data.forEach((row, rowIndex) => {
+                    row.forEach((item, itemIndex) => {
+                        if (item && item.code && item.code.toUpperCase().includes(searchTerm)) {
+                            results.push({
+                                warehouse,
+                                warehouseName,
+                                aisle,
+                                code: item.code,
+                                qty: item.qty,
+                                row: data.length - rowIndex,
+                                position: isLeft ? (itemIndex + 1) : (row.length - itemIndex),
+                                isLeft
+                            });
+                        }
+                    });
+                });
+            };
+
+            searchInData(warehouseData.TP_TRAI, 'tp', 'Kho TP', 'TRÁI', true);
+            searchInData(warehouseData.TP_PHAI, 'tp', 'Kho TP', 'PHẢI', false);
+            searchInData(warehouseData.A, 'a', 'Xưởng A', 'CHÍNH', true);
+            searchInData(warehouseData.XI_TRAI, 'xi', 'Xưởng XI', 'TRÁI', true);
+            searchInData(warehouseData.XI_PHAI, 'xi', 'Xưởng XI', 'PHẢI', false);
+
+            return results;
+        }
+
+        function groupResultsByWarehouse(results) {
+            const grouped = { tp: [], a: [], xi: [] };
+            results.forEach(r => grouped[r.warehouse].push(r));
+            return grouped;
+        }
+
+        function displaySearchResults(results, query) {
+            currentSearchQuery = query;
+            currentSearchResults = results;
+
+            const resultsDiv = document.getElementById('searchResults');
+            const countSpan = document.getElementById('resultCount');
+            const termSpan = document.getElementById('searchTerm');
+            const groupsDiv = document.getElementById('resultGroups');
+
+            const grouped = groupResultsByWarehouse(results);
+            document.querySelectorAll('.warehouse-tab').forEach(tab => {
+                const wh = tab.dataset.warehouse;
+                tab.classList.toggle('has-results', grouped[wh] && grouped[wh].length > 0);
+            });
+
+            if (results.length === 0) {
+                resultsDiv.classList.remove('active');
+                clearAllHighlights();
+                return;
+            }
+
+            countSpan.textContent = results.length;
+            termSpan.textContent = query;
+
+            const warehouseNames = { tp: 'Kho Thành Phẩm', a: 'Xưởng A', xi: 'Xưởng XI' };
+            
+            let html = '';
+            for (const [wh, items] of Object.entries(grouped)) {
+                if (items.length === 0) continue;
+                
+                html += `
+                    <div class="result-group">
+                        <div class="result-group-title">
+                            <span class="badge ${wh}">${warehouseNames[wh]}</span>
+                            <span>${items.length} vị trí</span>
+                        </div>
+                        <div class="result-items">
+                            ${items.map(item => `
+                                <div class="result-item" data-warehouse="${item.warehouse}">
+                                    <span class="code">${item.code}</span>
+                                    <span class="qty-badge">${item.qty}</span>
+                                    <span class="detail">${item.aisle} H${item.row}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            groupsDiv.innerHTML = html;
+            resultsDiv.classList.add('active');
+
+            document.querySelectorAll('.result-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const warehouse = item.dataset.warehouse;
+                    switchWarehouse(warehouse);
+                });
+            });
+
+            applySearchToCurrentWarehouse();
+        }
+
+        function clearAllHighlights() {
+            document.querySelectorAll('.row.path-highlight').forEach(el => el.classList.remove('path-highlight'));
+            document.querySelectorAll('.item.highlight').forEach(el => {
+                el.classList.remove('highlight');
+                const badge = el.querySelector('.item-order');
+                if (badge) badge.remove();
+            });
+            document.querySelectorAll('.distance-info').forEach(el => {
+                el.classList.remove('active');
+                el.innerHTML = '';
+            });
+            document.querySelectorAll('.walking-path').forEach(el => {
+                el.classList.remove('path-active', 'branch-to-left', 'branch-to-right');
+            });
+            document.querySelectorAll('.aisle').forEach(el => el.classList.remove('has-highlight'));
+            document.querySelectorAll('.warehouse-tab').forEach(el => el.classList.remove('has-results'));
+        }
+
+        function clearWarehouseHighlights(warehouse) {
+            const gridId = `grid${warehouse.toUpperCase()}`;
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+
+            grid.querySelectorAll('.row.path-highlight').forEach(el => el.classList.remove('path-highlight'));
+            grid.querySelectorAll('.item.highlight').forEach(el => {
+                el.classList.remove('highlight');
+                const badge = el.querySelector('.item-order');
+                if (badge) badge.remove();
+            });
+            grid.querySelectorAll('.aisle').forEach(el => el.classList.remove('has-highlight'));
+            
+            const walkingPath = grid.querySelector('.walking-path');
+            if (walkingPath) {
+                walkingPath.classList.remove('path-active', 'branch-to-left', 'branch-to-right');
+            }
+
+            const distanceDiv = document.getElementById(`distance${warehouse.toUpperCase()}`);
+            if (distanceDiv) {
+                distanceDiv.classList.remove('active');
+                distanceDiv.innerHTML = '';
+            }
+        }
+
+        function applySearchToCurrentWarehouse() {
+            if (!currentSearchQuery || currentSearchResults.length === 0) return;
+
+            const activeTab = document.querySelector('.warehouse-tab.active');
+            if (!activeTab) return;
+            const warehouse = activeTab.dataset.warehouse;
+
+            const warehouseResults = currentSearchResults.filter(r => r.warehouse === warehouse);
+            if (warehouseResults.length === 0) {
+                clearWarehouseHighlights(warehouse);
+                return;
+            }
+
+            highlightMultipleLocations(warehouse, warehouseResults);
+        }
+
+        function highlightMultipleLocations(warehouse, results) {
+            const gridId = `grid${warehouse.toUpperCase()}`;
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+
+            clearWarehouseHighlights(warehouse);
+
+            const aisles = grid.querySelectorAll('.aisle');
+            const walkingPath = grid.querySelector('.walking-path');
+
+            const leftResults = results.filter(r => r.isLeft);
+            const rightResults = results.filter(r => !r.isLeft);
+
+            if (walkingPath) {
+                walkingPath.classList.add('path-active');
+                if (leftResults.length > 0) walkingPath.classList.add('branch-to-left');
+                if (rightResults.length > 0) walkingPath.classList.add('branch-to-right');
+            }
+
+            // Highlight left aisle
+            if (leftResults.length > 0 && aisles[0]) {
+                const leftAisle = aisles[0];
+                leftAisle.classList.add('has-highlight');
+                
+                const leftMaxRow = Math.max(...leftResults.map(r => r.row));
+                for (let i = 1; i <= leftMaxRow; i++) {
+                    const row = leftAisle.querySelector(`.row[data-row="${i}"]`);
+                    if (row) row.classList.add('path-highlight');
+                }
+
+                leftResults.forEach(result => {
+                    const items = leftAisle.querySelectorAll(`.item[data-code="${result.code.toUpperCase()}"]`);
+                    items.forEach(item => {
+                        const row = item.closest('.row');
+                        if (row && parseInt(row.dataset.row) === result.row) {
+                            item.classList.add('highlight');
+                            const order = item.dataset.order;
+                            if (!item.querySelector('.item-order')) {
+                                const orderBadge = document.createElement('span');
+                                orderBadge.className = 'item-order';
+                                orderBadge.textContent = order;
+                                item.appendChild(orderBadge);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Highlight right aisle
+            if (rightResults.length > 0 && aisles[1]) {
+                const rightAisle = aisles[1];
+                rightAisle.classList.add('has-highlight');
+                
+                const rightMaxRow = Math.max(...rightResults.map(r => r.row));
+                for (let i = 1; i <= rightMaxRow; i++) {
+                    const row = rightAisle.querySelector(`.row[data-row="${i}"]`);
+                    if (row) row.classList.add('path-highlight');
+                }
+
+                rightResults.forEach(result => {
+                    const items = rightAisle.querySelectorAll(`.item[data-code="${result.code.toUpperCase()}"]`);
+                    items.forEach(item => {
+                        const row = item.closest('.row');
+                        if (row && parseInt(row.dataset.row) === result.row) {
+                            item.classList.add('highlight');
+                            const order = item.dataset.order;
+                            if (!item.querySelector('.item-order')) {
+                                const orderBadge = document.createElement('span');
+                                orderBadge.className = 'item-order';
+                                orderBadge.textContent = order;
+                                item.appendChild(orderBadge);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Single aisle (Xưởng A)
+            if (aisles.length === 1 && results.length > 0) {
+                const aisle = aisles[0];
+                aisle.classList.add('has-highlight');
+                
+                const maxRowSingle = Math.max(...results.map(r => r.row));
+                for (let i = 1; i <= maxRowSingle; i++) {
+                    const row = aisle.querySelector(`.row[data-row="${i}"]`);
+                    if (row) row.classList.add('path-highlight');
+                }
+
+                results.forEach(result => {
+                    const items = aisle.querySelectorAll(`.item[data-code="${result.code.toUpperCase()}"]`);
+                    items.forEach(item => {
+                        const row = item.closest('.row');
+                        if (row && parseInt(row.dataset.row) === result.row) {
+                            item.classList.add('highlight');
+                            const order = item.dataset.order;
+                            if (!item.querySelector('.item-order')) {
+                                const orderBadge = document.createElement('span');
+                                orderBadge.className = 'item-order';
+                                orderBadge.textContent = order;
+                                item.appendChild(orderBadge);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Show distance info
+            const distanceDiv = document.getElementById(`distance${warehouse.toUpperCase()}`);
+            if (distanceDiv) {
+                const nearestRow = Math.min(...results.map(r => r.row));
+                const totalQty = results.reduce((sum, r) => sum + r.qty, 0);
+                const locationsList = results.map(r => `<span>${r.aisle} H${r.row} (${r.qty})</span>`).join('');
+                
+                distanceDiv.innerHTML = `
+                    <div class="summary">
+                        🎯 <span class="found-count">${results.length}</span> vị trí
+                        | Tổng: <span class="found-count">${totalQty}</span>
+                        | Gần nhất: <span class="found-count">${nearestRow}</span> hàng
+                    </div>
+                    <div class="locations">${locationsList}</div>
+                `;
+                distanceDiv.classList.add('active');
+            }
+
+            setTimeout(() => {
+                const firstHighlight = grid.querySelector('.item.highlight');
+                if (firstHighlight) {
+                    firstHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 200);
+        }
+
+        function switchWarehouse(warehouse) {
+            document.querySelectorAll('.warehouse-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.warehouse === warehouse);
+            });
+            document.querySelectorAll('.warehouse-content').forEach(content => {
+                content.classList.toggle('active', content.id === `warehouse-${warehouse}`);
+            });
+
+            if (currentSearchQuery) {
+                setTimeout(() => applySearchToCurrentWarehouse(), 50);
+            }
+        }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+
+            // Tab switching
+            document.querySelectorAll('.warehouse-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchWarehouse(tab.dataset.warehouse);
+                });
+            });
+
+            // Search
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const clearBtn = document.getElementById('clearBtn');
+
+            const performSearch = () => {
+                const query = searchInput.value.trim();
+                if (query) {
+                    const results = searchItems(query);
+                    displaySearchResults(results, query);
+                }
+            };
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                    searchInput.blur();
+                }
+            });
+
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const query = searchInput.value.trim();
+                    if (query.length >= 2) {
+                        const results = searchItems(query);
+                        displaySearchResults(results, query);
+                    } else if (query.length === 0) {
+                        currentSearchQuery = '';
+                        currentSearchResults = [];
+                        document.getElementById('searchResults').classList.remove('active');
+                        clearAllHighlights();
+                    }
+                }, 300);
+            });
+
+            clearBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                currentSearchQuery = '';
+                currentSearchResults = [];
+                document.getElementById('searchResults').classList.remove('active');
+                clearAllHighlights();
+            });
+
+            document.getElementById('refreshBtn').addEventListener('click', loadAllData);
+
+            // Modal handlers
+            document.getElementById('modalCancel').addEventListener('click', closeEditModal);
+            document.getElementById('modalSave').addEventListener('click', handleSave);
+            document.getElementById('editModal').addEventListener('click', (e) => {
+                if (e.target.id === 'editModal') closeEditModal();
+            });
+
+            // Enter key in modal
+            document.getElementById('modalPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSave();
+            });
+            document.getElementById('modalQty').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') document.getElementById('modalPassword').focus();
+            });
+        });
+    </script>
+</body>
+</html>

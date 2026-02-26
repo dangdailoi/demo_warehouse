@@ -1,0 +1,9 @@
+{
+  "name": "quan-ly-ton-kho-hat-nhua",
+  "version": "1.0.0",
+  "description": "Ứng dụng quản lý tồn kho hạt nhựa",
+  "scripts": {},
+  "keywords": ["warehouse", "inventory"],
+  "author": "",
+  "license": "MIT"
+}
