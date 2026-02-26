@@ -1406,7 +1406,7 @@
             const items = new Set();
             data.forEach(row => {
                 row.forEach(item => {
-                    if (item && item.code) items.add(item.code.toUpperCase());
+                    if (item && item.code) items.add(item.code.toString().toUpperCase());
                 });
             });
             return items.size;
@@ -1462,7 +1462,7 @@
                         
                         return `
                             <div class="item" 
-                                 data-code="${item.code.toUpperCase()}" 
+                                 data-code="${(item.code || "").toUpperCase()}" 
                                  data-order="${orderLabel}"
                                  data-sheet="${sheetName}"
                                  data-item='${itemData}'>
@@ -1550,7 +1550,7 @@
             const searchInData = (data, warehouse, warehouseName, aisle, isLeft) => {
                 data.forEach((row, rowIndex) => {
                     row.forEach((item, itemIndex) => {
-                        if (item && item.code && item.code.toUpperCase().includes(searchTerm)) {
+                       if (item && item.code && item.code.toString().toUpperCase().includes(searchTerm)) {
                             results.push({
                                 warehouse,
                                 warehouseName,
