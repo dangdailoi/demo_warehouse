@@ -1226,7 +1226,8 @@
 
     <script>
         // ===================== CẤU HÌNH =====================
-        const API_URL = "https://script.google.com/macros/s/AKfycbza9Js8zGuv_t8G-px4PuzZjH1gSQxTmsNPXJrQLZ6-SJcCE090U6-NDmoOxGoa1AIIZw/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbydmfqg12aCjgwu-2P0oY0AUyqXi3KlGsn_hmjre8d-detVUSmRtViWsgFjg3ahID6D/exec";
+        const EDIT_PASSWORD = "1111"; // Đổi password tại đây
         // ====================================================
 
         let warehouseData = {
@@ -1314,7 +1315,7 @@
         }
 
         // ==================== UPDATE DATA ====================
-        async function updateQuantity(sheet, row, col, newQty, password) { // Thêm tham số password
+        async function updateQuantity(sheet, row, col, newQty) {
             try {
                 updateStatus('loading', 'Đang lưu...');
                 
@@ -1324,26 +1325,22 @@
                         sheet: sheet,
                         row: row,
                         col: col,
-                        value: newQty,
-                        password: password // Gửi mật khẩu về server kiểm tra
+                        value: newQty
                     })
                 });
-        
+
                 const result = await response.json();
                 
                 if (result.success) {
                     showToast('Cập nhật thành công!', 'success');
-                    await loadAllData(); // Tải lại để đồng bộ
+                    await loadAllData(); // Reload data
                     return true;
                 } else {
-                    // Nếu sai pass hoặc lỗi khác, hiển thị thông báo từ server
-                    const errorMsg = result.message || 'Lỗi không xác định';
-                    document.getElementById('passwordError').textContent = errorMsg;
-                    document.getElementById('passwordError').classList.add('active');
-                    return false;
+                    throw new Error(result.message || 'Lỗi cập nhật');
                 }
             } catch (error) {
                 console.error('Update error:', error);
+                showToast('Lỗi: ' + error.message, 'error');
                 updateStatus('error', 'Lỗi');
                 return false;
             }
@@ -1373,9 +1370,10 @@
             const password = document.getElementById('modalPassword').value;
             const newQty = parseInt(document.getElementById('modalQty').value) || 0;
             
-            if (!password) {
-                document.getElementById('passwordError').textContent = "Vui lòng nhập mật khẩu!";
+            if (password !== EDIT_PASSWORD) {
                 document.getElementById('passwordError').classList.add('active');
+                document.getElementById('modalPassword').classList.add('error');
+                document.getElementById('modalPassword').focus();
                 return;
             }
             
@@ -1385,13 +1383,11 @@
             saveBtn.disabled = true;
             saveBtn.textContent = 'Đang lưu...';
             
-            // Gửi thẳng sang API, API sẽ trả về đúng hay sai
             const success = await updateQuantity(
                 currentEditItem.sheet,
                 currentEditItem.rowIndex,
                 currentEditItem.colIndex,
-                newQty,
-                password
+                newQty
             );
             
             saveBtn.disabled = false;
@@ -1401,12 +1397,13 @@
                 closeEditModal();
             }
         }
+
         // ==================== STATS ====================
         function countUniqueItems(data) {
             const items = new Set();
             data.forEach(row => {
                 row.forEach(item => {
-                    if (item && item.code) items.add(item.code.toString().toUpperCase());
+                    if (item && item.code) items.add(item.code.toUpperCase());
                 });
             });
             return items.size;
@@ -1462,7 +1459,7 @@
                         
                         return `
                             <div class="item" 
-                                data-code="${(item.code || "").toString().toUpperCase()}" 
+                                 data-code="${item.code.toUpperCase()}" 
                                  data-order="${orderLabel}"
                                  data-sheet="${sheetName}"
                                  data-item='${itemData}'>
@@ -1550,7 +1547,7 @@
             const searchInData = (data, warehouse, warehouseName, aisle, isLeft) => {
                 data.forEach((row, rowIndex) => {
                     row.forEach((item, itemIndex) => {
-                       if (item && item.code && item.code.toString().toUpperCase().includes(searchTerm)) {
+                        if (item && item.code && item.code.toUpperCase().includes(searchTerm)) {
                             results.push({
                                 warehouse,
                                 warehouseName,
