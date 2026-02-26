@@ -1346,78 +1346,6 @@
                 return { success: false, message: 'Lỗi kết nối' };
             }
         }
-        /* ===================== DRAG & DROP ===================== */
-        function enableDragAndDrop(container) {
-        
-            let draggedItem = null;
-        
-            container.querySelectorAll('.item').forEach(item => {
-        
-                item.addEventListener('dragstart', () => {
-                    draggedItem = item;
-                    item.classList.add('dragging');
-                });
-        
-                item.addEventListener('dragend', () => {
-                    item.classList.remove('dragging');
-                });
-        
-                item.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                });
-        
-                item.addEventListener('drop', async (e) => {
-                    e.preventDefault();
-        
-                    if (!draggedItem || draggedItem === item) return;
-        
-                    const from = {
-                        sheet: draggedItem.dataset.sheet,
-                        row: Number(draggedItem.dataset.rowindex),
-                        col: Number(draggedItem.dataset.colindex)
-                    };
-        
-                    const to = {
-                        sheet: item.dataset.sheet,
-                        row: Number(item.dataset.rowindex),
-                        col: Number(item.dataset.colindex)
-                    };
-        
-                    const password = prompt("Nhập mật khẩu để di chuyển:");
-                    if (!password) return;
-        
-                    updateStatus('loading', 'Đang di chuyển...');
-        
-                    try {
-                        const response = await fetch(API_URL, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                action: "move",
-                                from,
-                                to,
-                                password
-                            })
-                        });
-        
-                        const result = await response.json();
-        
-                        if (result.success) {
-                            showToast("Di chuyển thành công!");
-                            await loadAllData();
-                        } else {
-                            showToast(result.message || "Lỗi!", "error");
-                        }
-        
-                    } catch (err) {
-                        showToast("Lỗi mạng!", "error");
-                    }
-                });
-            });
-        }
-
 
         // ==================== MODAL ====================
         function openEditModal(item, sheetName, aisleName) {
@@ -1519,68 +1447,109 @@
         }
 
         // ==================== RENDERING ====================
-        function renderAisle(data, title, isLeft, sheetName) {
+        function renderAisle(data, title, isLeftAisle, sheetName, aisleId) {
+            const totalRows = data.length;
+            let html = `
+                <div class="aisle" id="${aisleId}">
+                    <div class="aisle-header">${title}</div>
+                    <div class="aisle-content">
+            `;
 
-            let html = `<div class="aisle">
-                            <div class="aisle-header">${title}</div>
-                            <div class="aisle-content">`;
-        
-            data.forEach(row => {
-                html += `<div class="row"><div class="row-items">`;
-        
-                row.forEach(item => {
-                    html += `
-                        <div class="item"
-                             draggable="true"
-                             data-sheet="${sheetName}"
-                             data-rowindex="${item.rowIndex}"
-                             data-colindex="${item.colIndex}">
-                            <span>${item.code}</span>
-                            <span>${item.qty}</span>
-                        </div>
-                    `;
-                });
-        
-                html += `</div></div>`;
+            data.forEach((row, index) => {
+                const displayRow = totalRows - index;
+                
+                const itemsHtml = row.length > 0 
+                    ? row.map((item, itemIndex) => {
+                        const orderLabel = isLeftAisle ? (itemIndex + 1) : (row.length - itemIndex);
+                        // Store item info for editing
+                        const itemData = JSON.stringify({
+                            code: item.code,
+                            qty: item.qty,
+                            rowIndex: item.rowIndex,
+                            colIndex: item.colIndex,
+                            displayRow: displayRow
+                        }).replace(/"/g, '&quot;');
+                        
+                        return `
+                            <div class="item" 
+                                 data-code="${item.code.toUpperCase()}" 
+                                 data-order="${orderLabel}"
+                                 data-sheet="${sheetName}"
+                                 data-item='${itemData}'>
+                                <span class="item-code">${item.code}</span>
+                                <span class="item-qty" title="Click để sửa số lượng">
+                                    <span class="qty-icon">📦</span>
+                                    <span class="qty-value">${item.qty}</span>
+                                </span>
+                            </div>
+                        `;
+                    }).join('')
+                    : '<span class="item-empty">—</span>';
+
+                html += `
+                    <div class="row" data-row="${displayRow}">
+                        <div class="row-number">${displayRow}</div>
+                        <div class="row-items">${itemsHtml}</div>
+                    </div>
+                `;
             });
-        
+
             html += `</div></div>`;
-        
             return html;
         }
 
         function renderDoubleAisle(leftData, rightData, gridId, leftSheet, rightSheet) {
+            const container = document.getElementById(gridId);
+            if (!container) return;
+            
+            container.innerHTML = `
+                ${renderAisle(leftData, '◀ TRÁI', true, leftSheet, gridId + '_left')}
+                <div class="walking-path" id="${gridId}_path">
+                    <span class="path-arrow">⬆</span>
+                    <div class="path-line"></div>
+                    <div class="branch-left"></div>
+                    <div class="branch-right"></div>
+                    <span class="path-label">LỐI ĐI</span>
+                    <span class="path-arrow">⬆</span>
+                </div>
+                ${renderAisle(rightData, 'PHẢI ▶', false, rightSheet, gridId + '_right')}
+            `;
 
-    const container = document.getElementById(gridId);
-    if (!container) return;
-
-    container.innerHTML =
-        renderAisle(leftData, "TRÁI", true, leftSheet) +
-        renderAisle(rightData, "PHẢI", false, rightSheet);
-
-    /* 🔥 QUAN TRỌNG */
-    enableDragAndDrop(container);
-}
-
+            // Add click handlers for editing
+            container.querySelectorAll('.item-qty').forEach(qtyEl => {
+                qtyEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const itemEl = qtyEl.closest('.item');
+                    const itemData = JSON.parse(itemEl.dataset.item.replace(/&quot;/g, '"'));
+                    const sheetName = itemEl.dataset.sheet;
+                    const aisleName = itemEl.closest('.aisle').querySelector('.aisle-header').textContent;
+                    openEditModal(itemData, sheetName, aisleName);
+                });
+            });
+        }
 
         function renderSingleAisle(data, gridId, sheetName) {
+            const container = document.getElementById(gridId);
+            if (!container) return;
+            container.innerHTML = renderAisle(data, '📍 KHU VỰC CHÍNH', true, sheetName, gridId + '_main');
 
-    const container = document.getElementById(gridId);
-    if (!container) return;
-
-    container.innerHTML =
-        renderAisle(data, "KHU VỰC CHÍNH", true, sheetName);
-
-    /* 🔥 QUAN TRỌNG */
-    enableDragAndDrop(container);
-}
+            // Add click handlers for editing
+            container.querySelectorAll('.item-qty').forEach(qtyEl => {
+                qtyEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const itemEl = qtyEl.closest('.item');
+                    const itemData = JSON.parse(itemEl.dataset.item.replace(/&quot;/g, '"'));
+                    const sheetName = itemEl.dataset.sheet;
+                    openEditModal(itemData, sheetName, 'Khu vực chính');
+                });
+            });
+        }
 
         function renderAllWarehouses() {
-    renderDoubleAisle(warehouseData.TP_TRAI, warehouseData.TP_PHAI, 'gridTP', 'TP_TRAI', 'TP_PHAI');
-    renderSingleAisle(warehouseData.A, 'gridA', 'A');
-    renderDoubleAisle(warehouseData.XI_TRAI, warehouseData.XI_PHAI, 'gridXI', 'XI_TRAI', 'XI_PHAI');
-}
-document.addEventListener('DOMContentLoaded', loadAllData);
+            renderDoubleAisle(warehouseData.TP_TRAI, warehouseData.TP_PHAI, 'gridTP', 'TP_TRAI', 'TP_PHAI');
+            renderSingleAisle(warehouseData.A, 'gridA', 'A');
+            renderDoubleAisle(warehouseData.XI_TRAI, warehouseData.XI_PHAI, 'gridXI', 'XI_TRAI', 'XI_PHAI');
+        }
 
         // ==================== SEARCH ====================
         function searchItems(query) {
