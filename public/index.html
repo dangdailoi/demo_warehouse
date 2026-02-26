@@ -1226,7 +1226,7 @@
 
     <script>
         // ===================== CẤU HÌNH =====================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwcP6fOmpL2WHiWvSItkQdaSdmmRswogAYHP5tMiSVfvdF6WFwIEATZa7v0M0UE3NYs/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwlt5Z4VIxgypljiYf1TtYoWH25FjJ8FUhTw3i_IoPwxsgnqNJF-jgJpkv2tEITSqFi/exec";
         // ====================================================
 
         let warehouseData = {
@@ -1314,22 +1314,18 @@
         }
 
         // ==================== UPDATE DATA ====================
-        async function updateQuantity(sheet, row, col, newQty) {
-            // Lấy mật khẩu người dùng vừa nhập ở Modal
-            const password = document.getElementById('modalPassword').value;
-        
+        async function updateQuantity(sheet, row, col, newQty, password) { // Thêm password ở đây
             try {
                 updateStatus('loading', 'Đang lưu...');
                 
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    // Gửi dữ liệu dưới dạng JSON
                     body: JSON.stringify({
                         sheet: sheet,
                         row: row,
                         col: col,
                         value: newQty,
-                        password: password // THÊM DÒNG NÀY ĐỂ XÁC THỰC
+                        password: password // Gửi mật khẩu về server
                     })
                 });
         
@@ -1340,12 +1336,19 @@
                     await loadAllData(); 
                     return true;
                 } else {
+                    // Nếu sai mật khẩu hoặc lỗi khác từ server trả về
                     throw new Error(result.message || 'Lỗi cập nhật');
                 }
             } catch (error) {
                 console.error('Update error:', error);
-                showToast('Lỗi: ' + error.message, 'error');
+                showToast(error.message, 'error');
                 updateStatus('error', 'Lỗi');
+                
+                // Hiển thị lỗi mật khẩu nếu server báo sai
+                if (error.message === "Mật khẩu không chính xác!") {
+                    document.getElementById('passwordError').classList.add('active');
+                    document.getElementById('modalPassword').classList.add('error');
+                }
                 return false;
             }
         }
@@ -1374,53 +1377,32 @@
             const password = document.getElementById('modalPassword').value;
             const newQty = parseInt(document.getElementById('modalQty').value) || 0;
             
-            const passwordError = document.getElementById('passwordError');
-            const modalPassword = document.getElementById('modalPassword');
-        
-            try {
-                // Gửi mật khẩu lên server để kiểm tra
-                const checkAuth = await fetch('check_password.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: password })
-                });
-        
-                const authResult = await checkAuth.json();
-        
-                if (!authResult.success) {
-                    passwordError.classList.add('active');
-                    modalPassword.classList.add('error');
-                    modalPassword.focus();
-                    return;
-                }
-        
-                // Nếu mật khẩu đúng, mới tiến hành lưu vào Google Sheet
-                if (!currentEditItem) return;
-                
-                const saveBtn = document.getElementById('modalSave');
-                saveBtn.disabled = true;
-                saveBtn.textContent = 'Đang lưu...';
-                
-                const success = await updateQuantity(
-                    currentEditItem.sheet,
-                    currentEditItem.rowIndex,
-                    currentEditItem.colIndex,
-                    newQty
-                );
-                
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Lưu';
-                
-                if (success) {
-                    closeEditModal();
-                }
-        
-            } catch (error) {
-                passwordError.textContent = "Lỗi kết nối server!";
-                passwordError.classList.add('active');
+            if (!currentEditItem) return;
+            
+            // Reset trạng thái lỗi trước khi gửi
+            document.getElementById('passwordError').classList.remove('active');
+            document.getElementById('modalPassword').classList.remove('error');
+            
+            const saveBtn = document.getElementById('modalSave');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Đang lưu...';
+            
+            // Gọi hàm update với tham số password
+            const success = await updateQuantity(
+                currentEditItem.sheet,
+                currentEditItem.rowIndex,
+                currentEditItem.colIndex,
+                newQty,
+                password 
+            );
+            
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Lưu';
+            
+            if (success) {
+                closeEditModal();
             }
         }
-
         // ==================== STATS ====================
         function countUniqueItems(data) {
             const items = new Set();
