@@ -1226,8 +1226,7 @@
 
     <script>
         // ===================== CẤU HÌNH =====================
-        const API_URL = "https://script.google.com/macros/s/AKfycbydmfqg12aCjgwu-2P0oY0AUyqXi3KlGsn_hmjre8d-detVUSmRtViWsgFjg3ahID6D/exec";
-        const EDIT_PASSWORD = "1111"; // Đổi password tại đây
+        const API_URL = "https://script.google.com/macros/s/AKfycbyNYFNf4DxgzwTum0SoYC4d8tfrWMzhPhH7oNAGghgSvW8JCA_XMdRgh1HgvtiY4z8VtQ/exec";
         // ====================================================
 
         let warehouseData = {
@@ -1315,7 +1314,7 @@
         }
 
         // ==================== UPDATE DATA ====================
-        async function updateQuantity(sheet, row, col, newQty) {
+        async function updateQuantity(sheet, row, col, newQty, password) { // Thêm tham số password
             try {
                 updateStatus('loading', 'Đang lưu...');
                 
@@ -1325,24 +1324,26 @@
                         sheet: sheet,
                         row: row,
                         col: col,
-                        value: newQty
+                        value: newQty,
+                        password: password // Truyền password lên server
                     })
                 });
-
+        
                 const result = await response.json();
                 
                 if (result.success) {
                     showToast('Cập nhật thành công!', 'success');
                     await loadAllData(); // Reload data
-                    return true;
+                    return { success: true };
                 } else {
-                    throw new Error(result.message || 'Lỗi cập nhật');
+                    // Trả về lỗi từ server (Ví dụ: "Sai mật khẩu!")
+                    return { success: false, message: result.message };
                 }
             } catch (error) {
                 console.error('Update error:', error);
-                showToast('Lỗi: ' + error.message, 'error');
+                showToast('Lỗi kết nối mạng', 'error');
                 updateStatus('error', 'Lỗi');
-                return false;
+                return { success: false, message: 'Lỗi kết nối' };
             }
         }
 
@@ -1370,7 +1371,12 @@
             const password = document.getElementById('modalPassword').value;
             const newQty = parseInt(document.getElementById('modalQty').value) || 0;
             
-            if (password !== EDIT_PASSWORD) {
+            // Xóa trạng thái lỗi cũ
+            document.getElementById('passwordError').classList.remove('active');
+            document.getElementById('modalPassword').classList.remove('error');
+        
+            if (!password) {
+                document.getElementById('passwordError').textContent = 'Vui lòng nhập mật khẩu';
                 document.getElementById('passwordError').classList.add('active');
                 document.getElementById('modalPassword').classList.add('error');
                 document.getElementById('modalPassword').focus();
@@ -1383,22 +1389,29 @@
             saveBtn.disabled = true;
             saveBtn.textContent = 'Đang lưu...';
             
-            const success = await updateQuantity(
+            // Gọi hàm update có truyền password
+            const response = await updateQuantity(
                 currentEditItem.sheet,
                 currentEditItem.rowIndex,
                 currentEditItem.colIndex,
-                newQty
+                newQty,
+                password
             );
             
             saveBtn.disabled = false;
             saveBtn.textContent = 'Lưu';
             
-            if (success) {
+            if (response.success) {
                 closeEditModal();
+            } else {
+                // Hiển thị lỗi từ server trả về
+                document.getElementById('passwordError').textContent = response.message;
+                document.getElementById('passwordError').classList.add('active');
+                document.getElementById('modalPassword').classList.add('error');
+                document.getElementById('modalPassword').focus();
             }
         }
-
-        // ==================== STATS ====================
+                // ==================== STATS ====================
         function countUniqueItems(data) {
             const items = new Set();
             data.forEach(row => {
