@@ -1314,7 +1314,7 @@
         }
 
         // ==================== UPDATE DATA ====================
-        async function updateQuantity(sheet, row, col, newQty, password) { // Thêm password ở đây
+        async function updateQuantity(sheet, row, col, newQty, password) { // Thêm tham số password
             try {
                 updateStatus('loading', 'Đang lưu...');
                 
@@ -1325,7 +1325,7 @@
                         row: row,
                         col: col,
                         value: newQty,
-                        password: password // Gửi mật khẩu về server
+                        password: password // Gửi mật khẩu về server kiểm tra
                     })
                 });
         
@@ -1336,19 +1336,15 @@
                     await loadAllData(); 
                     return true;
                 } else {
-                    // Nếu sai mật khẩu hoặc lỗi khác từ server trả về
-                    throw new Error(result.message || 'Lỗi cập nhật');
+                    // Hiển thị lỗi mật khẩu nếu server trả về false
+                    document.getElementById('passwordError').textContent = result.message;
+                    document.getElementById('passwordError').classList.add('active');
+                    document.getElementById('modalPassword').classList.add('error');
+                    throw new Error(result.message);
                 }
             } catch (error) {
                 console.error('Update error:', error);
-                showToast(error.message, 'error');
                 updateStatus('error', 'Lỗi');
-                
-                // Hiển thị lỗi mật khẩu nếu server báo sai
-                if (error.message === "Mật khẩu không chính xác!") {
-                    document.getElementById('passwordError').classList.add('active');
-                    document.getElementById('modalPassword').classList.add('error');
-                }
                 return false;
             }
         }
@@ -1377,23 +1373,25 @@
             const password = document.getElementById('modalPassword').value;
             const newQty = parseInt(document.getElementById('modalQty').value) || 0;
             
-            if (!currentEditItem) return;
+            if (!password) {
+                document.getElementById('passwordError').textContent = "Vui lòng nhập mật khẩu!";
+                document.getElementById('passwordError').classList.add('active');
+                return;
+            }
             
-            // Reset trạng thái lỗi trước khi gửi
-            document.getElementById('passwordError').classList.remove('active');
-            document.getElementById('modalPassword').classList.remove('error');
+            if (!currentEditItem) return;
             
             const saveBtn = document.getElementById('modalSave');
             saveBtn.disabled = true;
             saveBtn.textContent = 'Đang lưu...';
             
-            // Gọi hàm update với tham số password
+            // Gửi thẳng sang API, API sẽ trả về đúng hay sai
             const success = await updateQuantity(
                 currentEditItem.sheet,
                 currentEditItem.rowIndex,
                 currentEditItem.colIndex,
                 newQty,
-                password 
+                password
             );
             
             saveBtn.disabled = false;
